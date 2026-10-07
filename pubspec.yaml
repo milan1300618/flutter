@@ -1,0 +1,39 @@
+name: storyfund
+description: "Aplikácia StoryFund - Tvorme príbehy. Pomáhajme."
+publish_to: 'none'
+
+version: 0.6.0+1 # Verzia v0.6 podľa špecifikácie projektu
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Ikony pre vzhľad aplikácie
+  cupertino_icons: ^1.0.8
+
+  # Pre sťahovanie zostatkov a overovanie platieb z UniCredit API
+  http: ^1.2.2
+
+  # Pre bezpečné lokálne ukladanie a načítavanie konfigurácie zariadenia
+  shared_preferences: ^2.3.2
+
+  # Pre otváranie odkazu na transparentný účet v prehliadači telefónu
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Registrácia statických súborov aplikácie (Assets)
+  assets:
+    - assets/intro.txt
+    - assets/middle.txt
+    - assets/ending.txt
+    - assets/qr_mini.jpg
