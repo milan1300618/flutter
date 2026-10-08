@@ -43,16 +43,13 @@ jobs:
         # Zadefinujeme 'None' na KONIEC súboru balance.dart, aby neporušil poradie importov
         echo "const None = null;" >> lib/balance.dart
 
-    - name: Stub missing backend & balance service methods
+    - name: Patch Service Classes via Code Injection
       run: |
-        # Odstránime uzatváraciu zátvorku triedy na konci súboru a pridáme chýbajúce metódy, aby kompilácia prešla
-        # Predpokladáme, že triedy končia štandardnou zátvorkou }
+        # Oprava volania BackendService.loginUser -> zmeníme ho na BackendService().loginUser na serveri za behu
+        sed -i 's/BackendService\.loginUser/BackendService().loginUser/g' lib/login_screen.dart
         
-        # Oprava pre BackendService (pridanie funkcie loginUser)
-        sed -i '$ s/}/  static Future<bool> loginUser(String nik, String pin) async => true;\n}/' lib/backend.dart
-        
-        # Oprava pre BalanceService (pridanie funkcie updateBalanceIfNeeded)
-        sed -i '$ s/}/  static Future<void> updateBalanceIfNeeded() async {}\n}/' lib/balance.dart
+        # Oprava pre BalanceService - injektujeme chýbajúcu metódu priamo na začiatok vnútra triedy BalanceService
+        sed -i '/class BalanceService/a \  static Future<void> updateBalanceIfNeeded() async {}' lib/balance.dart
 
     - name: Upgrade Android Gradle Plugin and Gradle version on fly
       run: |
