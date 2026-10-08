@@ -40,16 +40,14 @@ jobs:
         sed -i "1i import 'session_manager.dart';" lib/home_screen.dart
         sed -i "1i import 'session_manager.dart';" lib/profile_screen.dart
         
-        # Zadefinujeme 'None' na KONIEC súboru balance.dart, aby neporušil poradie importov
+        # Zadefinujeme 'None' na KONIEC súboru balance.dart
         echo "const None = null;" >> lib/balance.dart
 
     - name: Patch Service Classes via Code Injection
       run: |
-        # Oprava volania BackendService.loginUser -> zmeníme ho na BackendService().loginUser na serveri za behu
+        # Oprava statického volania na inštančné volanie v login_screen.dart pre obe služby
         sed -i 's/BackendService\.loginUser/BackendService().loginUser/g' lib/login_screen.dart
-        
-        # Oprava pre BalanceService - injektujeme chýbajúcu metódu priamo na začiatok vnútra triedy BalanceService
-        sed -i '/class BalanceService/a \  static Future<void> updateBalanceIfNeeded() async {}' lib/balance.dart
+        sed -i 's/BalanceService\.updateBalanceIfNeeded/BalanceService().updateBalanceIfNeeded/g' lib/login_screen.dart
 
     - name: Upgrade Android Gradle Plugin and Gradle version on fly
       run: |
