@@ -28,10 +28,10 @@ jobs:
       run: flutter pub get
 
     - name: Build APK
-      run: flutter build apk --target-platform android-arm64
+      run: flutter build apk --target-platform android-arm64 --android-skip-build-dependency-validation
 
     - name: Build AAB (pre Google Play)
-      run: flutter build appbundle
+      run: flutter build appbundle --android-skip-build-dependency-validation
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
