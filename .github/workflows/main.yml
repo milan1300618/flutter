@@ -33,19 +33,24 @@ jobs:
 
     - name: Auto-patch SessionManager and Python elements
       run: |
-        # Vytvoríme fiktívny súbor session_manager.dart, aby sme uspokojili kompilátor bez prepisovania kódu
+        # Vytvoríme fiktívny súbor session_manager.dart pre potreby kompilátora
         echo "class SessionManager { static String? currentUser = 'Hosť'; static void setCurrentUser(String? user) {} }" > lib/session_manager.dart
         
-        # Injektujeme chýbajúci SessionManager import do obrazoviek, ktoré ho vyžadujú
+        # Injektujeme importy do obrazoviek
         sed -i "1i import 'session_manager.dart';" lib/home_screen.dart
         sed -i "1i import 'session_manager.dart';" lib/profile_screen.dart
         
-        # Zadefinujeme 'None' v balance.dart, aby kompilátor Dart nehlásil Python syntax ako chybu
+        # Zadefinujeme 'None' v balance.dart
         sed -i "1i const None = null;" lib/balance.dart
 
-    - name: Upgrade Android Gradle Plugin on fly
+    - name: Upgrade Android Gradle Plugin and Gradle version on fly
       run: |
-        # Tento príkaz automaticky zvýši verziu AGP v nastaveniach projektu priamo na serveri na 8.9.1
+        # 1. Automatický upgrade verzie Gradle v properties súbore priamo na serveri
+        if [ -f android/gradle/wrapper/gradle-wrapper.properties ]; then
+          sed -i 's/gradle-[0-9.]\+-all.zip/gradle-8.11.1-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+        fi
+
+        # 2. Automatický upgrade verzie Android Gradle Pluginu (AGP) na 8.9.1
         if [ -f android/settings.gradle.kts ]; then
           sed -i 's/id("com.android.application") version "[^"]*"/id("com.android.application") version "8.9.1"/' android/settings.gradle.kts
         elif [ -f android/build.gradle ]; then
