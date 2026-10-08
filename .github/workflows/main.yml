@@ -22,7 +22,15 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
+        flutter-version: '3.24.5'
         channel: 'stable'
+
+    - name: Link files for build compatibility
+      run: |
+        cp lib/app_config.dart lib/app.dart
+        cp lib/backend_service.dart lib/backend.dart
+        cp lib/firebase_auth_service.dart lib/firebase_auth.dart
+        cp lib/balance_service.dart lib/balance.dart
 
     - name: Install dependencies
       run: flutter pub get
