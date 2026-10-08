@@ -45,15 +45,11 @@ jobs:
 
     - name: Patch Service Classes via Code Injection
       run: |
-        # Oprava statického volania na inštančné volanie v login_screen.dart pre obe služby
+        # Oprava statických volaní na inštančné volania v login_screen.dart pre všetky tri služby
         sed -i 's/BackendService\.loginUser/BackendService().loginUser/g' lib/login_screen.dart
         sed -i 's/BalanceService\.updateBalanceIfNeeded/BalanceService().updateBalanceIfNeeded/g' lib/login_screen.dart
-        
-        # Oprava odstrihnutého konca súboru firebase_auth.dart
-        # Odstránime prípadný visiaci "idToken": na riadku 113 a korektne uzavrieme Mapu, metódu aj triedu
-        sed -i 's/"idToken":.*/"idToken": ""\n    };\n  }\n}/g' lib/firebase_auth.dart
-        # Pre istotu poistíme, ak by tam zátvorky úplne chýbali na konci súboru
-        echo -e "\n    };\n  }\n}" >> lib/firebase_auth.dart
+        sed -i 's/FirebaseAuthService\.loginAdmin/FirebaseAuthService().loginAdmin/g' lib/login_screen.dart
+        sed -i 's/FirebaseAuthService\.loginUserAuth/FirebaseAuthService().loginUserAuth/g' lib/login_screen.dart
 
     - name: Upgrade Android Gradle Plugin and Gradle version on fly
       run: |
