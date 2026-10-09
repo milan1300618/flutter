@@ -5,83 +5,56 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
 
-    - name: Link files for build compatibility
-      run: |
-        cp lib/app_config.dart lib/app.dart
-        cp lib/backend_service.dart lib/backend.dart
-        cp lib/firebase_auth_service.dart lib/firebase_auth.dart
-        cp lib/balance_service.dart lib/balance.dart
+      - name: Check Flutter project
+        run: |
+          flutter --version
+          test -f pubspec.yaml
+          test -f lib/main.dart
 
-    - name: Auto-patch SessionManager and Python elements
-      run: |
-        # Vytvoríme fiktívny súbor session_manager.dart pre potreby kompilátora
-        echo "class SessionManager { static String? currentUser = 'Hosť'; static void setCurrentUser(String? user) {} }" > lib/session_manager.dart
-        
-        # Injektujeme importy SessionManager do obrazoviek na úplne prvý riadok
-        sed -i "1i import 'session_manager.dart';" lib/home_screen.dart
-        sed -i "1i import 'session_manager.dart';" lib/profile_screen.dart
-        
-        # Zadefinujeme 'None' na KONIEC súboru balance.dart
-        echo "const None = null;" >> lib/balance.dart
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Patch Service Classes via Code Injection
-      run: |
-        # Oprava statických volaní na inštančné volania v login_screen.dart pre všetky tri služby
-        sed -i 's/BackendService\.loginUser/BackendService().loginUser/g' lib/login_screen.dart
-        sed -i 's/BalanceService\.updateBalanceIfNeeded/BalanceService().updateBalanceIfNeeded/g' lib/login_screen.dart
-        sed -i 's/FirebaseAuthService\.loginAdmin/FirebaseAuthService().loginAdmin/g' lib/login_screen.dart
-        sed -i 's/FirebaseAuthService\.loginUserAuth/FirebaseAuthService().loginUserAuth/g' lib/login_screen.dart
+      - name: Analyze Dart files
+        run: flutter analyze
 
-    - name: Upgrade Android Gradle Plugin and Gradle version on fly
-      run: |
-        # 1. Automatický upgrade verzie Gradle v properties súbore priamo na serveri
-        if [ -f android/gradle/wrapper/gradle-wrapper.properties ]; then
-          sed -i 's/gradle-[0-9.]\+-all.zip/gradle-8.11.1-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-        fi
+      - name: Build APK
+        run: flutter build apk --release --target-platform android-arm64
 
-        # 2. Automatický upgrade verzie Android Gradle Pluginu (AGP) na 8.9.1
-        if [ -f android/settings.gradle.kts ]; then
-          sed -i 's/id("com.android.application") version "[^"]*"/id("com.android.application") version "8.9.1"/' android/settings.gradle.kts
-        elif [ -f android/build.gradle ]; then
-          sed -i 's/com.android.tools.build:gradle:[^"'"'"']*/com.android.tools.build:gradle:8.9.1/' android/build.gradle
-        fi
+      - name: Build AAB
+        run: flutter build appbundle --release
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: storyfund-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
-    - name: Build APK
-      run: flutter build apk --target-platform android-arm64 --android-skip-build-dependency-validation
-
-    - name: Build AAB (pre Google Play)
-      run: flutter build appbundle --android-skip-build-dependency-validation
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: storyfund-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
-
-    - name: Upload AAB Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: storyfund-aab
-        path: build/app/outputs/bundle/release/app-release.aab
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: storyfund-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
