@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'app.dart'; // Import konfigurácie (pôvodne config.py)
-import 'backend.dart'; // Import backend logiky (pôvodne backend.py)
-import 'firebase_auth.dart'; // Import autentifikácie (pôvodne firebase_auth.py)
-import 'balance.dart'; // Import sťahovania zostatku (pôvodne balance.py)
+import 'app_config.dart'; // Import konfigurácie (pôvodne config.py)
+import 'backend_service.dart'; // Import backend logiky (pôvodne backend.py)
+import 'firebase_auth_service.dart'; // Import autentifikácie (pôvodne firebase_auth.py)
+import 'balance_service.dart'; // Import sťahovania zostatku (pôvodne balance.py)
 
 // Globálne premenné a funkcie presne podľa login.py predlohy
 String? currentUser;
